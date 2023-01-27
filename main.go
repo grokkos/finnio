@@ -25,5 +25,7 @@ func main() {
 	finnhubClient := finnhub.NewAPIClient(cfg).DefaultApi
 
 	res, _, _ := finnhubClient.Quote(context.Background()).Symbol("AAPL").Execute()
+	//TODO lets move logic and calculations to app and play there
+	//TODO begin unit testing
 	fmt.Printf("%+v\n", *res.Pc)
 }
