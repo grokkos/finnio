@@ -1,8 +1,9 @@
 package entities
 
 type Price struct {
-	Current  float32
-	Previous float32
-	Loss     float32
-	Profit   float32
+	Current         float32
+	PreviousClosing float32
+	Portfolio       float32
+	Loss            float32
+	Profit          float32
 }
