@@ -40,12 +40,12 @@ func App() {
 	wg.Add(2)
 
 	go func() {
-		entityApple.Loss, entityApple.Profit = calcProfitAndLoss(*appleData.C, *appleData.Pc)
+		entityApple.Loss, entityApple.Profit = CalcProfitAndLoss(*appleData.C, *appleData.Pc)
 		fmt.Printf("AAPL: %+v\n", entityApple)
 		wg.Done()
 	}()
 	go func() {
-		entityMicrosoft.Loss, entityMicrosoft.Profit = calcProfitAndLoss(*microsoftData.C, *microsoftData.Pc)
+		entityMicrosoft.Loss, entityMicrosoft.Profit = CalcProfitAndLoss(*microsoftData.C, *microsoftData.Pc)
 		fmt.Printf("MSFT: %+v\n", entityMicrosoft)
 		wg.Done()
 	}()
@@ -53,7 +53,7 @@ func App() {
 
 }
 
-func calcProfitAndLoss(current float32, previousClosing float32) (loss float32, profit float32) {
+func CalcProfitAndLoss(current float32, previousClosing float32) (loss float32, profit float32) {
 	if current > previousClosing {
 		profit = (current - previousClosing) * 10
 	} else if current < previousClosing {
