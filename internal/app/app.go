@@ -8,6 +8,7 @@ import (
 	"github.com/joho/godotenv"
 	"log"
 	"os"
+	"sync"
 )
 
 func App() {
@@ -27,17 +28,28 @@ func App() {
 	appleData, _, _ := finnhubClient.Quote(context.Background()).Symbol("AAPL").Execute()
 	//use the entity Price to store all the relevant data we need
 	entityApple := entities.Price{Current: *appleData.C, PreviousClosing: *appleData.Pc, Portfolio: *appleData.C * 10}
-	//use the calcProfitAndLoss function to do the maths
-	entityApple.Loss, entityApple.Profit = calcProfitAndLoss(*appleData.C, *appleData.Pc)
 
 	//perform the authenticated api request to retrieve data
 	microsoftData, _, _ := finnhubClient.Quote(context.Background()).Symbol("MSFT").Execute()
 	//use the entity Price to store all the relevant data we need
 	entityMicrosoft := entities.Price{Current: *microsoftData.C, PreviousClosing: *microsoftData.Pc, Portfolio: *microsoftData.C * 10}
-	//use the calcProfitAndLoss function to do the maths
-	entityMicrosoft.Loss, entityMicrosoft.Profit = calcProfitAndLoss(*microsoftData.C, *microsoftData.Pc)
 
-	fmt.Printf("AAPL: %+v\n \nMSFT: %+v\n", entityApple, entityMicrosoft)
+	//using two goroutines for the calculations and print to console
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		entityApple.Loss, entityApple.Profit = calcProfitAndLoss(*appleData.C, *appleData.Pc)
+		fmt.Printf("AAPL: %+v\n", entityApple)
+		wg.Done()
+	}()
+	go func() {
+		entityMicrosoft.Loss, entityMicrosoft.Profit = calcProfitAndLoss(*microsoftData.C, *microsoftData.Pc)
+		fmt.Printf("MSFT: %+v\n", entityMicrosoft)
+		wg.Done()
+	}()
+	wg.Wait()
+
 }
 
 func calcProfitAndLoss(current float32, previousClosing float32) (loss float32, profit float32) {
