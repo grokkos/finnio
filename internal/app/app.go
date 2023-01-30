@@ -24,6 +24,7 @@ func App() {
 	cfg.AddDefaultHeader("X-Finnhub-Token", os.Getenv("API_KEY"))
 	finnhubClient := finnhub.NewAPIClient(cfg).DefaultApi
 
+	//TODO refactor to use goroutines for the outgoing requests to finnhub api
 	//perform the authenticated api request to retrieve data
 	appleData, _, _ := finnhubClient.Quote(context.Background()).Symbol("AAPL").Execute()
 	//use the entity Price to store all the relevant data we need
