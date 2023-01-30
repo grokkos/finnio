@@ -8,6 +8,7 @@ import (
 	"github.com/joho/godotenv"
 	"log"
 	"os"
+	"sync"
 )
 
 func App() {
@@ -16,27 +17,47 @@ func App() {
 	if err != nil {
 		log.Fatalf("Error getting env, %v", err)
 	} else {
-		fmt.Println(".env file loaded with success")
+		//fmt.Println(".env file loaded with success")
 	}
 	cfg := finnhub.NewConfiguration()
+	//add the api key in header
 	cfg.AddDefaultHeader("X-Finnhub-Token", os.Getenv("API_KEY"))
 	finnhubClient := finnhub.NewAPIClient(cfg).DefaultApi
 
-	res, _, _ := finnhubClient.Quote(context.Background()).Symbol("AAPL").Execute()
-	//TODO begin unit testing
-	t := &entities.Price{Current: *res.C, Previous: *res.Pc}
+	//TODO refactor to use goroutines for the outgoing requests to finnhub api
+	//perform the authenticated api request to retrieve data
+	appleData, _, _ := finnhubClient.Quote(context.Background()).Symbol("AAPL").Execute()
+	//use the entity Price to store all the relevant data we need
+	entityApple := entities.Price{Current: *appleData.C, PreviousClosing: *appleData.Pc, Portfolio: *appleData.C * 10}
 
-	//check for profit and fill the response struct object accordingly
-	if *res.C > *res.Pc {
-		t.Profit = *res.C - *res.Pc
-	} else if *res.C < *res.Pc {
-		t.Loss = *res.Pc - *res.C
+	//perform the authenticated api request to retrieve data
+	microsoftData, _, _ := finnhubClient.Quote(context.Background()).Symbol("MSFT").Execute()
+	//use the entity Price to store all the relevant data we need
+	entityMicrosoft := entities.Price{Current: *microsoftData.C, PreviousClosing: *microsoftData.Pc, Portfolio: *microsoftData.C * 10}
+
+	//using two goroutines for the calculations and print to console
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		entityApple.Loss, entityApple.Profit = CalcProfitAndLoss(*appleData.C, *appleData.Pc)
+		fmt.Printf("AAPL: %+v\n", entityApple)
+		wg.Done()
+	}()
+	go func() {
+		entityMicrosoft.Loss, entityMicrosoft.Profit = CalcProfitAndLoss(*microsoftData.C, *microsoftData.Pc)
+		fmt.Printf("MSFT: %+v\n", entityMicrosoft)
+		wg.Done()
+	}()
+	wg.Wait()
+
+}
+
+func CalcProfitAndLoss(current float32, previousClosing float32) (loss float32, profit float32) {
+	if current > previousClosing {
+		profit = (current - previousClosing) * 10
+	} else if current < previousClosing {
+		loss = (previousClosing - current) * 10
 	}
-
-	fmt.Printf("%+v\n", t)
-
-	//previousClosing := *res.Pc MSFT
-
-	//goroutine to check the MSFT price parallel
-	//res1, _, _ := finnhubClient.Quote(context.Background()).Symbol("MSFT").Execute()
+	return
 }
