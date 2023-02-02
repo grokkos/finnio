@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/Finnhub-Stock-API/finnhub-go/v2"
+	"github.com/grokkos/finnio/internal/pkg/constants"
 	"github.com/grokkos/finnio/internal/pkg/entities"
 	"github.com/joho/godotenv"
 	"log"
@@ -26,12 +27,12 @@ func App() {
 
 	//TODO refactor to use goroutines for the outgoing requests to finnhub api
 	//perform the authenticated api request to retrieve data
-	appleData, _, _ := finnhubClient.Quote(context.Background()).Symbol("AAPL").Execute()
+	appleData, _, _ := finnhubClient.Quote(context.Background()).Symbol(string(constants.ShareSymbolApple)).Execute()
 	//use the entity Price to store all the relevant data we need
 	entityApple := entities.Price{Current: *appleData.C, PreviousClosing: *appleData.Pc, Portfolio: *appleData.C * 10}
 
 	//perform the authenticated api request to retrieve data
-	microsoftData, _, _ := finnhubClient.Quote(context.Background()).Symbol("MSFT").Execute()
+	microsoftData, _, _ := finnhubClient.Quote(context.Background()).Symbol(string(constants.ShareSymbolMicrosoft)).Execute()
 	//use the entity Price to store all the relevant data we need
 	entityMicrosoft := entities.Price{Current: *microsoftData.C, PreviousClosing: *microsoftData.Pc, Portfolio: *microsoftData.C * 10}
 
